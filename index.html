@@ -110,7 +110,7 @@ h1{font-size:20px;margin:0}
     <div class="hbtns">
       <button class="pri" id="bAdd">＋ Item</button>
       <button id="bPrint">🖨 Print</button>
-      <button id="bBackup">☁ Sync / Backup</button>
+      <button class="pri" id="bSave">☁ Save</button><button class="pri" id="bLoad">📂 Load</button><button id="bBackup" title="File settings">⚙</button>
     </div>
   </div>
   <div class="stats" id="stats"></div>
@@ -231,7 +231,7 @@ function renderChips(){
 function fmtT(iso){if(!iso)return '—';const d=new Date(iso);return d.toLocaleDateString('en-GB')+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
 function renderSync(){const fs=localStorage.getItem('iat_stock_filesaved')||'';const el=$('#syncs');if(!el)return;
   const dirty=!fs||(S.modified&&S.modified>fs);
-  el.innerHTML=fs?`File saved: ${fmtT(fs)} ${dirty?'<b style="color:var(--low)">● changes not saved to file</b>':'<b style="color:var(--ok)">✔ up to date</b>'}`:'<b style="color:var(--low)">● never saved to a file yet</b>'}
+  const fn=localStorage.getItem('iat_stock_filename');el.innerHTML=fs?`${fn?'📄 '+esc(fn)+' · ':''}Saved: ${fmtT(fs)} ${dirty?'<b style="color:var(--low)">● changes not saved to file</b>':'<b style="color:var(--ok)">✔ up to date</b>'}`:'<b style="color:var(--low)">● never saved to a file yet</b>'}
 function renderTabs(){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ui.view));$('#filters').style.display=ui.view==='need'?'none':''}
 
 function stockHTML(){
@@ -321,28 +321,41 @@ const JT=[{description:'JSON file',accept:{'application/json':['.json']}}];
 function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('iat_stock_h',1);r.onupgradeneeded=()=>r.result.createObjectStore('h');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 async function hget(){try{const db=await idb();return await new Promise(res=>{const q=db.transaction('h').objectStore('h').get('file');q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(e){return null}}
 async function hset(h){try{const db=await idb();db.transaction('h','readwrite').objectStore('h').put(h,'file')}catch(e){}}
-function markSaved(){localStorage.setItem('iat_stock_filesaved',new Date().toISOString());if(!S.modified){S.modified=new Date().toISOString();persist()}renderSync()}
+function markSaved(name){localStorage.setItem('iat_stock_filesaved',S.modified||new Date().toISOString());if(name)localStorage.setItem('iat_stock_filename',name);renderSync()}
 function payload(){if(!S.modified){S.modified=new Date().toISOString();persist()}return JSON.stringify({app:'iat-stock',savedAt:S.modified,data:S})}
+function confirmP(msg,label){return new Promise(res=>{confirmM(msg,()=>res(true),label);$('#cNo').onclick=()=>{closeM();res(false)}})}
+async function getHandle(mode){ // stored file handle with permission, or null
+  const h=await hget();if(!h)return null;
+  try{let q=await h.queryPermission({mode});if(q!=='granted')q=await h.requestPermission({mode});return q==='granted'?h:null}catch(e){return null}
+}
 async function saveFile(pick){
   const p=payload();
   if(FSA){
     try{
-      let h=pick?null:await hget();
-      if(h){let q=await h.queryPermission({mode:'readwrite'});if(q!=='granted')q=await h.requestPermission({mode:'readwrite'});if(q!=='granted')h=null}
+      let h=pick?null:await getHandle('readwrite');
+      if(h){ // safety: is the file in OneDrive newer than what this device last synced?
+        try{const o=JSON.parse(await (await h.getFile()).text());const fa=o.savedAt||'';const last=localStorage.getItem('iat_stock_filesaved')||'';
+          if(fa&&fa>last&&fa!==S.modified){const ok=await confirmP(`The file was updated on another device (<b>${fmtT(fa)}</b>) after this device last synced.<br>Saving now will overwrite those changes.<br><br>Overwrite the file anyway?`,'Overwrite');if(!ok)return}
+        }catch(e){}
+      }
       if(!h){h=await window.showSaveFilePicker({suggestedName:'iat-stock.json',types:JT});await hset(h)}
       const w=await h.createWritable();await w.write(p);await w.close();
-      markSaved();toast('Saved to '+h.name);return;
+      markSaved(h.name);toast('Saved to '+h.name);return;
     }catch(e){if(e&&e.name==='AbortError')return}
   }
   const bl=new Blob([p],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='iat-stock.json';document.body.appendChild(a);a.click();a.remove();
-  markSaved();toast('File downloaded – move it to your OneDrive folder');
+  markSaved('iat-stock.json');toast('File downloaded – move it to your OneDrive folder');
 }
-async function loadFile(){
+async function loadFile(pick){
   if(FSA){
-    try{const [h]=await window.showOpenFilePicker({types:JT});await hset(h);const f=await h.getFile();applyLoaded(await f.text());return}
-    catch(e){if(e&&e.name==='AbortError')return}
+    try{
+      let h=pick?null:await getHandle('read');
+      if(!h){[h]=await window.showOpenFilePicker({types:JT});await hset(h)}
+      const f=await h.getFile();localStorage.setItem('iat_stock_filename',h.name);applyLoaded(await f.text());return;
+    }catch(e){if(e&&e.name==='AbortError')return;if(!pick&&e&&e.name==='NotFoundError'){toast('Saved file not found – choose it again');await hset(null);return loadFile(true)}}
   }
-  $('#bFileIn').click();
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>applyLoaded(r.result);r.readAsText(f)};inp.click();
 }
 function applyLoaded(text){
   let o;try{o=JSON.parse(text)}catch(e){toast('This is not a valid backup file');return}
@@ -353,21 +366,19 @@ function applyLoaded(text){
     S=d;if(!S.log)S.log=[];draft={};order={};if(savedAt)S.modified=savedAt;persist();localStorage.setItem('iat_stock_filesaved',savedAt||new Date().toISOString());closeM();render();toast('Loaded')},'Load');
 }
 function openBackup(){
-  openM(`<h3>☁ Sync with OneDrive</h3>
-  <div class="note">1) On your PC, tap <b>Save to file</b> once and choose a file inside your OneDrive folder (e.g. OneDrive/Stock/iat-stock.json). After that, Save writes to the same file directly.<br>2) On the other device, tap <b>Load from file</b> and pick that file from OneDrive.<br>${FSA?'':'<br>This browser can’t write to a chosen file, so Save downloads the file – move it into OneDrive (or save it from the share sheet), and Load opens a file picker.'}</div>
-  <div class="mbtns" style="margin-top:0"><button class="pri" id="sSave">💾 Save to file</button><button class="pri" id="sLoad">📂 Load from file</button></div>
-  ${FSA?'<div class="mbtns"><button id="sPick">Save to a different file…</button></div>':''}
-  <input type="file" id="bFileIn" accept=".json,application/json" style="display:none">
+  const fn=localStorage.getItem('iat_stock_filename');
+  openM(`<h3>⚙ File settings</h3>
+  <div class="note">${FSA?'The first time on a device you choose the file inside your OneDrive folder. After that, <b>Save</b> and <b>Load</b> always use that same file with no questions.':'This browser can’t keep a link to a file, so Save downloads the file (move it into OneDrive) and Load asks you to pick it. Use Chrome or Edge on the PC for one-tap Save/Load.'}</div>
+  <div style="margin-bottom:10px">Current file: <b>${fn?esc(fn):'not chosen yet'}</b></div>
+  ${FSA?'<div class="mbtns" style="margin-top:0"><button id="sPick">Choose a different file to Save to…</button><button id="sPickL">Choose a different file to Load…</button></div>':''}
   <details style="margin-top:12px"><summary>Advanced: copy / paste backup text</summary>
   <textarea id="bk" rows="6" style="font-size:12px;margin-top:8px">${esc(JSON.stringify(S))}</textarea>
   <div class="mbtns"><button id="bCopy">Copy</button><button id="bRest">Restore from text</button></div>
   <div class="mbtns"><button class="dan" id="bReset">Reset to original Excel data</button></div></details>
   <div class="mbtns"><span></span><button id="bClose">Close</button></div>`);
   $('#bClose').onclick=closeM;
-  $('#sSave').onclick=()=>saveFile(false);
-  if($('#sPick'))$('#sPick').onclick=()=>saveFile(true);
-  $('#sLoad').onclick=loadFile;
-  $('#bFileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>applyLoaded(r.result);r.readAsText(f)};
+  if($('#sPick'))$('#sPick').onclick=()=>{closeM();saveFile(true)};
+  if($('#sPickL'))$('#sPickL').onclick=()=>{closeM();loadFile(true)};
   $('#bCopy').onclick=()=>{const t=$('#bk');t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}toast(ok?'Copied':'Select the text and copy manually')};
   $('#bRest').onclick=()=>applyLoaded($('#bk').value);
   $('#bReset').onclick=()=>confirmM('All items and quantities return to the original Excel data (25/09/2026) and your edits are lost.',()=>{S=seed();draft={};order={};save();closeM();render();toast('Reset done')},'Reset');
@@ -395,6 +406,8 @@ $('#q').addEventListener('input',e=>{ui.q=e.target.value;if(ui.view!=='need')$('
 $('#bAdd').onclick=()=>openEdit(null);
 $('#bPrint').onclick=printSheet;
 $('#bBackup').onclick=openBackup;
+$('#bSave').onclick=()=>saveFile(false);
+$('#bLoad').onclick=()=>loadFile(false);
 
 const view=$('#view');
 view.addEventListener('click',e=>{
