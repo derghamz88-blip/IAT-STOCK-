@@ -315,6 +315,69 @@ function openEdit(id){
 }
 
 /* ---------- backup ---------- */
+/* ---------- OneDrive (Microsoft Graph) – fixed file, sign in once ---------- */
+const CFG_KEY='iat_stock_cfg',TOK_KEY='iat_stock_tok',SCOPES='Files.ReadWrite offline_access User.Read';
+function cfg(){const d={clientId:'11424af3-de3a-4401-ace9-325149977264',hint:'iatproduction2025@hotmail.com',path:'IAT-Stock/iat-stock.json'};try{return Object.assign(d,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(e){return d}}
+const redirectUri=()=>location.origin+location.pathname;
+function b64u(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+async function startLogin(pending){
+  const v=b64u(crypto.getRandomValues(new Uint8Array(32)));
+  const c=b64u(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)));
+  const st=b64u(crypto.getRandomValues(new Uint8Array(12)));
+  sessionStorage.setItem('iat_pkce',JSON.stringify({v,st,pending}));
+  const k=cfg();const q={client_id:k.clientId,response_type:'code',redirect_uri:redirectUri(),response_mode:'query',scope:SCOPES,state:st,code_challenge:c,code_challenge_method:'S256'};
+  if(k.hint)q.login_hint=k.hint;
+  location.href='https://login.microsoftonline.com/common/oauth2/v2.0/authorize?'+new URLSearchParams(q);
+}
+async function tokenReq(extra){
+  const k=cfg();const r=await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(Object.assign({client_id:k.clientId},extra))});
+  const j=await r.json();if(!r.ok)throw new Error(j.error_description||j.error||String(r.status));return j;
+}
+function saveTok(r){let old=null;try{old=JSON.parse(localStorage.getItem(TOK_KEY)||'null')}catch(e){}
+  localStorage.setItem(TOK_KEY,JSON.stringify({access:r.access_token,exp:Date.now()+(r.expires_in||3600)*1000,refresh:r.refresh_token||(old&&old.refresh)||''}));return r.access_token}
+async function getToken(){
+  let t=null;try{t=JSON.parse(localStorage.getItem(TOK_KEY)||'null')}catch(e){}
+  if(t&&t.exp>Date.now()+60000)return t.access;
+  if(t&&t.refresh){try{return saveTok(await tokenReq({grant_type:'refresh_token',refresh_token:t.refresh,scope:SCOPES}))}catch(e){}}
+  return null;
+}
+async function handleRedirect(){
+  const p=new URLSearchParams(location.search);if(!p.has('code')&&!p.has('error'))return;
+  let sv=null;try{sv=JSON.parse(sessionStorage.getItem('iat_pkce')||'null')}catch(e){}
+  history.replaceState(null,'',location.pathname);
+  if(p.get('error')){toast('Microsoft sign-in: '+String(p.get('error_description')||p.get('error')).slice(0,140));return}
+  if(!sv||sv.st!==p.get('state')){toast('Sign-in could not be verified, tap Save/Load again');return}
+  try{saveTok(await tokenReq({grant_type:'authorization_code',code:p.get('code'),code_verifier:sv.v,redirect_uri:redirectUri(),scope:SCOPES}));sessionStorage.removeItem('iat_pkce');
+    if(sv.pending==='save')cloudSave();else if(sv.pending==='load')cloudLoad();else toast('Signed in to OneDrive')}
+  catch(e){toast('Sign-in failed: '+e.message)}
+}
+const gUrl=()=>'https://graph.microsoft.com/v1.0/me/drive/root:/'+cfg().path.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+async function gMeta(tok){
+  const r=await fetch(gUrl(),{headers:{Authorization:'Bearer '+tok}});
+  if(r.status===404)return null;if(r.status===401||r.status===403){const e=new Error('auth');e.auth=true;throw e}
+  if(!r.ok)throw new Error('OneDrive '+r.status);return r.json();
+}
+async function gRead(m){const r=await fetch(m['@microsoft.graph.downloadUrl']);if(!r.ok)throw new Error('Download '+r.status);return r.text()}
+function cloudErr(e,pending){if(e&&e.auth){localStorage.removeItem(TOK_KEY);return startLogin(pending)}toast((e&&e.message)||'OneDrive error')}
+async function cloudSave(){
+  const tok=await getToken();if(!tok)return startLogin('save');
+  try{
+    const m=await gMeta(tok);
+    if(m){try{const o=JSON.parse(await gRead(m));const fa=o.savedAt||'';const last=localStorage.getItem('iat_stock_filesaved')||'';
+      if(fa&&fa>last&&fa!==S.modified){const ok=await confirmP(`The OneDrive file was updated on another device (<b>${fmtT(fa)}</b>) after this device last synced.<br>Saving now will overwrite those changes.<br><br>Overwrite it anyway?`,'Overwrite');if(!ok)return}}catch(e){}}
+    const r=await fetch(gUrl()+':/content',{method:'PUT',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:payload()});
+    if(r.status===401||r.status===403){const e=new Error('auth');e.auth=true;throw e}
+    if(!r.ok)throw new Error('OneDrive save failed ('+r.status+')');
+    markSaved('☁ '+cfg().path);toast('Saved to OneDrive');
+  }catch(e){return cloudErr(e,'save')}
+}
+async function cloudLoad(){
+  const tok=await getToken();if(!tok)return startLogin('load');
+  try{
+    const m=await gMeta(tok);if(!m){toast('No file in OneDrive yet – tap Save first');return}
+    const t=await gRead(m);localStorage.setItem('iat_stock_filename','☁ '+cfg().path);applyLoaded(t);
+  }catch(e){return cloudErr(e,'load')}
+}
 /* ---------- file sync (OneDrive folder) ---------- */
 const FSA=('showSaveFilePicker' in window)&&('showOpenFilePicker' in window);
 const JT=[{description:'JSON file',accept:{'application/json':['.json']}}];
@@ -328,7 +391,7 @@ async function getHandle(mode){ // stored file handle with permission, or null
   const h=await hget();if(!h)return null;
   try{let q=await h.queryPermission({mode});if(q!=='granted')q=await h.requestPermission({mode});return q==='granted'?h:null}catch(e){return null}
 }
-async function saveFile(pick){
+async function saveLocal(pick){
   const p=payload();
   if(FSA){
     try{
@@ -346,13 +409,13 @@ async function saveFile(pick){
   const bl=new Blob([p],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='iat-stock.json';document.body.appendChild(a);a.click();a.remove();
   markSaved('iat-stock.json');toast('File downloaded – move it to your OneDrive folder');
 }
-async function loadFile(pick){
+async function loadLocal(pick){
   if(FSA){
     try{
       let h=pick?null:await getHandle('read');
       if(!h){[h]=await window.showOpenFilePicker({types:JT});await hset(h)}
       const f=await h.getFile();localStorage.setItem('iat_stock_filename',h.name);applyLoaded(await f.text());return;
-    }catch(e){if(e&&e.name==='AbortError')return;if(!pick&&e&&e.name==='NotFoundError'){toast('Saved file not found – choose it again');await hset(null);return loadFile(true)}}
+    }catch(e){if(e&&e.name==='AbortError')return;if(!pick&&e&&e.name==='NotFoundError'){toast('Saved file not found – choose it again');await hset(null);return loadLocal(true)}}
   }
   const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>applyLoaded(r.result);r.readAsText(f)};inp.click();
@@ -366,19 +429,26 @@ function applyLoaded(text){
     S=d;if(!S.log)S.log=[];draft={};order={};if(savedAt)S.modified=savedAt;persist();localStorage.setItem('iat_stock_filesaved',savedAt||new Date().toISOString());closeM();render();toast('Loaded')},'Load');
 }
 function openBackup(){
-  const fn=localStorage.getItem('iat_stock_filename');
-  openM(`<h3>⚙ File settings</h3>
-  <div class="note">${FSA?'The first time on a device you choose the file inside your OneDrive folder. After that, <b>Save</b> and <b>Load</b> always use that same file with no questions.':'This browser can’t keep a link to a file, so Save downloads the file (move it into OneDrive) and Load asks you to pick it. Use Chrome or Edge on the PC for one-tap Save/Load.'}</div>
-  <div style="margin-bottom:10px">Current file: <b>${fn?esc(fn):'not chosen yet'}</b></div>
-  ${FSA?'<div class="mbtns" style="margin-top:0"><button id="sPick">Choose a different file to Save to…</button><button id="sPickL">Choose a different file to Load…</button></div>':''}
-  <details style="margin-top:12px"><summary>Advanced: copy / paste backup text</summary>
-  <textarea id="bk" rows="6" style="font-size:12px;margin-top:8px">${esc(JSON.stringify(S))}</textarea>
+  const k=cfg();
+  openM(`<h3>⚙ OneDrive sync</h3>
+  <div class="note">Save and Load always use the same OneDrive file. You sign in to Microsoft once; after that it reconnects by itself (if Microsoft asks again it just bounces back to the app).</div>
+  <div class="fld"><label>OneDrive file path</label><input id="c_path" value="${esc(k.path)}"></div>
+  <div class="fld"><label>Microsoft account (hint)</label><input id="c_hint" value="${esc(k.hint)}"></div>
+  <div class="fld"><label>Azure app (client) ID</label><input id="c_id" value="${esc(k.clientId)}"></div>
+  <div class="fld"><label>Redirect URI to register in Azure (Single-page application)</label><input id="c_ru" value="${esc(redirectUri())}" readonly></div>
+  <div class="mbtns"><button id="c_out">Sign out</button><button class="pri" id="c_save">Save settings</button></div>
+  <details style="margin-top:12px"><summary>Local file / copy-paste backup</summary>
+  <div class="mbtns"><button id="l_save">Save to local file</button><button id="l_load">Load from local file</button></div>
+  <textarea id="bk" rows="5" style="font-size:12px;margin-top:8px">${esc(JSON.stringify(S))}</textarea>
   <div class="mbtns"><button id="bCopy">Copy</button><button id="bRest">Restore from text</button></div>
   <div class="mbtns"><button class="dan" id="bReset">Reset to original Excel data</button></div></details>
   <div class="mbtns"><span></span><button id="bClose">Close</button></div>`);
   $('#bClose').onclick=closeM;
-  if($('#sPick'))$('#sPick').onclick=()=>{closeM();saveFile(true)};
-  if($('#sPickL'))$('#sPickL').onclick=()=>{closeM();loadFile(true)};
+  $('#c_save').onclick=()=>{const o={path:$('#c_path').value.trim().replace(/^\/+/,'')||'IAT-Stock/iat-stock.json',hint:$('#c_hint').value.trim(),clientId:$('#c_id').value.trim()};
+    const old=cfg();if(o.clientId!==old.clientId)localStorage.removeItem(TOK_KEY);localStorage.setItem(CFG_KEY,JSON.stringify(o));toast('Settings saved')};
+  $('#c_out').onclick=()=>{localStorage.removeItem(TOK_KEY);toast('Signed out')};
+  $('#l_save').onclick=()=>{closeM();saveLocal(true)};
+  $('#l_load').onclick=()=>{closeM();loadLocal(true)};
   $('#bCopy').onclick=()=>{const t=$('#bk');t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}toast(ok?'Copied':'Select the text and copy manually')};
   $('#bRest').onclick=()=>applyLoaded($('#bk').value);
   $('#bReset').onclick=()=>confirmM('All items and quantities return to the original Excel data (25/09/2026) and your edits are lost.',()=>{S=seed();draft={};order={};save();closeM();render();toast('Reset done')},'Reset');
@@ -406,8 +476,8 @@ $('#q').addEventListener('input',e=>{ui.q=e.target.value;if(ui.view!=='need')$('
 $('#bAdd').onclick=()=>openEdit(null);
 $('#bPrint').onclick=printSheet;
 $('#bBackup').onclick=openBackup;
-$('#bSave').onclick=()=>saveFile(false);
-$('#bLoad').onclick=()=>loadFile(false);
+$('#bSave').onclick=()=>cloudSave();
+$('#bLoad').onclick=()=>cloudLoad();
 
 const view=$('#view');
 view.addEventListener('click',e=>{
@@ -445,7 +515,7 @@ function applyCount(){
     S.lastCount=today();S.log.unshift({d:today(),cnt:ids.length,ch});S.log=S.log.slice(0,30);draft={};order={};save();render();toast('Count applied')},'Apply');
 }
 
-load();render();
+load();render();handleRedirect();
 </script>
 </body>
 </html>
