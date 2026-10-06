@@ -317,8 +317,8 @@ function openEdit(id){
 /* ---------- backup ---------- */
 /* ---------- OneDrive (Microsoft Graph) – fixed file, sign in once ---------- */
 const CFG_KEY='iat_stock_cfg',TOK_KEY='iat_stock_tok',SCOPES='Files.ReadWrite offline_access User.Read';
-function cfg(){const d={clientId:'11424af3-de3a-4401-ace9-325149977264',hint:'iatproduction2025@hotmail.com',path:'IAT-Stock/iat-stock.json'};try{return Object.assign(d,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(e){return d}}
-const redirectUri=()=>location.origin+location.pathname;
+function cfg(){const d={clientId:'353911f0-ec77-4b12-b507-754eef20f0e2',hint:'iatproduction2025@hotmail.com',path:'IAT-Stock/iat-stock.json'};try{return Object.assign(d,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'))}catch(e){return d}}
+const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 function b64u(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 async function startLogin(pending){
   const v=b64u(crypto.getRandomValues(new Uint8Array(32)));
