@@ -435,7 +435,7 @@ function openBackup(){
   <div class="fld"><label>OneDrive file path</label><input id="c_path" value="${esc(k.path)}"></div>
   <div class="fld"><label>Microsoft account (hint)</label><input id="c_hint" value="${esc(k.hint)}"></div>
   <div class="fld"><label>Azure app (client) ID</label><input id="c_id" value="${esc(k.clientId)}"></div>
-  <div class="fld"><label>Redirect URI to register in Azure (Single-page application)</label><input id="c_ru" value="${esc(redirectUri())}" readonly></div>
+  <div class="fld"><label>Redirect URI to register in Azure (Single-page application)</label><input id="c_ru" value="${esc(redirectUri())}" readonly><button id="c_cp" style="margin-top:6px">Copy this URI</button><div class="sub" style="margin-top:6px">App version: r6 · Client ID ends …${esc(k.clientId.slice(-6))}</div></div>
   <div class="mbtns"><button id="c_out">Sign out</button><button class="pri" id="c_save">Save settings</button></div>
   <details style="margin-top:12px"><summary>Local file / copy-paste backup</summary>
   <div class="mbtns"><button id="l_save">Save to local file</button><button id="l_load">Load from local file</button></div>
@@ -446,6 +446,7 @@ function openBackup(){
   $('#bClose').onclick=closeM;
   $('#c_save').onclick=()=>{const o={path:$('#c_path').value.trim().replace(/^\/+/,'')||'IAT-Stock/iat-stock.json',hint:$('#c_hint').value.trim(),clientId:$('#c_id').value.trim()};
     const old=cfg();if(o.clientId!==old.clientId)localStorage.removeItem(TOK_KEY);localStorage.setItem(CFG_KEY,JSON.stringify(o));toast('Settings saved')};
+  $('#c_cp').onclick=()=>{const t=$('#c_ru');t.focus();t.select();t.setSelectionRange(0,999);let ok=false;try{ok=document.execCommand('copy')}catch(e){}toast(ok?'URI copied':'Select the text and copy manually')};
   $('#c_out').onclick=()=>{localStorage.removeItem(TOK_KEY);toast('Signed out')};
   $('#l_save').onclick=()=>{closeM();saveLocal(true)};
   $('#l_load').onclick=()=>{closeM();loadLocal(true)};
