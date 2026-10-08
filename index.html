@@ -32,7 +32,7 @@ h1{font-size:20px;margin:0}
 .stat.on{border-color:var(--accent)}
 .stat.low b{color:var(--low)}.stat.out b{color:var(--out)}.stat.ok b{color:var(--ok)}
 .tabs{display:flex;gap:6px;margin-bottom:10px}
-.tabs button{flex:1;font-weight:700}
+.tabs button{flex:1;font-weight:700;padding:8px 2px;font-size:11.5px;min-width:0}
 .tabs button.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
 .tabs .cnt{display:inline-block;min-width:20px;background:var(--out);color:#fff;border-radius:10px;font-size:12px;padding:0 6px;margin-inline-start:4px}
 .bar{display:flex;gap:8px;margin-bottom:8px}
@@ -84,22 +84,56 @@ h1{font-size:20px;margin:0}
 .imgrow{display:flex;gap:10px;align-items:center}
 .imgrow .th{width:70px;height:70px}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:#222;color:#fff;padding:9px 16px;border-radius:20px;z-index:99;font-size:14px;display:none;max-width:90%}
+.urow .uin{width:84px;text-align:center;font-weight:700;font-size:18px}
+.ubtn{padding:8px 10px;font-weight:700}.ubtn.u{color:var(--out);border-color:var(--out)}.ubtn.r{color:var(--ok);border-color:var(--ok)}
+.tdy{font-size:12px;color:var(--muted)}
+.ilog{border:1px solid var(--border);border-radius:8px;height:104px;overflow-y:auto;overscroll-behavior:contain;padding:3px 6px;font-size:11px;line-height:1.5;background:var(--inp)}.ilog.empty0{color:var(--muted);display:flex;align-items:center;justify-content:center}.ilog .hl{font-size:10.5px;display:flex;gap:6px;justify-content:space-between;border-bottom:1px dotted var(--border);white-space:nowrap}.ilog .dt{color:var(--muted)}.ilog .n{color:var(--out);font-weight:700}.ilog .p{color:var(--ok);font-weight:700}.ilog .s{color:var(--accent);font-weight:700}.ilog .rs{color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}.ctl{display:flex;flex-direction:column;gap:6px}.ctl .row{display:flex;gap:4px;align-items:center}.ctl .uin{width:100%;min-width:0;text-align:center;font-weight:700;font-size:16px;padding:7px 4px}.ctl .ubtn{flex:1;padding:8px 2px}
+.ih{flex-basis:100%;font-size:11px;color:var(--muted);border-top:1px dashed var(--border);padding-top:4px;line-height:1.5}
+.ih .hl span.n{color:var(--out)}.ih .hl span.p{color:var(--ok)}.ih .hl span.s{color:var(--accent)}.ih summary{cursor:pointer}
+.hrow{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:5px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.hq{font-weight:700;min-width:44px;text-align:center}.hq.n{color:var(--out)}.hq.p{color:var(--ok)}.hq.s{color:var(--accent)}
+.hday{margin:14px 0 6px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.avr{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:6px}
+.avt{display:flex;gap:8px;align-items:center;margin-bottom:6px}.th.sm{width:38px;height:38px}
+.avg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.avg div{background:var(--nombg);border-radius:8px;padding:4px 6px;text-align:center}
+.avg span{display:block;font-size:11px;color:var(--muted)}.avg b{font-size:16px}
+.avg b.n{color:var(--out)}.avg b.w{color:var(--low)}.avg b.p{color:var(--ok)}
 #printArea{display:none}
+.sheet{color:#000;font-family:Arial,Helvetica,sans-serif;font-size:calc(10px*var(--fs,1));background:#fff;text-align:left}
+.sheet h2{margin:0 0 1mm;font-size:calc(15px*var(--fs,1))}
+.sheet .pm{margin-bottom:2mm}
+.sheet .lg{margin-bottom:2mm;color:#222;font-size:calc(9.5px*var(--fs,1))}
+.sheet h4{margin:3mm 0 1mm;font-size:calc(12px*var(--fs,1));break-after:avoid;page-break-after:avoid}
+.sheet table.pt{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:1mm}
+.sheet table.pt thead{display:table-header-group}
+.sheet table.pt tbody{break-inside:avoid;page-break-inside:avoid}
+.sheet table.pt th{background:#e6e6e6;border:.5pt solid #333;font-size:calc(8.5px*var(--fs,1));padding:1px 2px;text-align:center;color:#000}
+.sheet table.pt td{border:.5pt solid #333;padding:0;height:var(--bh,8mm);vertical-align:middle;text-align:center;color:#000}
+.sheet table.pt td.pi{padding:1mm}
+.sheet table.pt td.pi img{width:var(--img,11mm);height:var(--img,11mm);object-fit:cover;display:block;margin:0 auto}
+.sheet table.pt td.pn{text-align:left;padding:1mm 1.5mm;line-height:1.25}
+.sheet table.pt td.pn b{font-size:calc(11px*var(--fs,1));display:block;word-break:break-word}
+.sheet table.pt td.pn .a{font-size:calc(11px*var(--fs,1));direction:rtl;display:block;text-align:right}
+.sheet table.pt td.pn .m{font-size:calc(8.5px*var(--fs,1));color:#333;display:block}
+.sheet table.pt td.pn .s{font-size:calc(9px*var(--fs,1));font-weight:700;margin-top:.5mm}
+.sheet table.pt td.pl{font-weight:700;font-size:calc(9px*var(--fs,1));background:#efefef}
+.sheet table.pt td.pt2{background:#fafafa}
+#pv{position:fixed;inset:0;z-index:60;background:#6b7280;display:none;flex-direction:column}
+#pv.on{display:flex}
+#pvbar{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--card);color:var(--text);flex-wrap:wrap}
+#pvscroll{flex:1;overflow:auto;padding:10px}
+#pvwrap{margin:0 auto;position:relative}
+#pvpaper{background:#fff;transform-origin:top left;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.pset .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pset .cks{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0}
+.pset .cks label{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--text);margin:0}
+.pset .cks input{width:auto}
 @media print{
- @page{size:A4 landscape;margin:9mm}
- body{background:#fff;color:#000}
- #app,#ov,#toast{display:none!important}
- #printArea{display:block;color:#000;font-size:11px}
- #printArea h2{margin:0 0 2px;font-size:16px}
- #printArea .pm{margin-bottom:6px;font-size:11px}
- #printArea h4{margin:10px 0 3px;font-size:13px;break-after:avoid}
- #printArea table{width:100%;border-collapse:collapse;margin-bottom:4px;break-inside:auto}
- #printArea tr{break-inside:avoid}
- #printArea th,#printArea td{border:1px solid #444;padding:3px 4px;text-align:center;vertical-align:middle}
- #printArea th{background:#e8e8e8}
- #printArea td.l{text-align:right}
- #printArea img{width:26px;height:26px;object-fit:cover}
- #printArea tr.blank td{height:26px}
+ html,body{background:#fff!important;color:#000!important}
+ #app,#ov,#toast,#pv{display:none!important}
+ #printArea{display:block}
 }
 </style>
 </head>
@@ -118,6 +152,8 @@ h1{font-size:20px;margin:0}
     <button data-v="stock">Stock</button>
     <button data-v="count">Count</button>
     <button data-v="need">Shortages <span class="cnt" id="needCnt">0</span></button>
+    <button data-v="hist">History</button>
+    <button data-v="avg">Averages</button>
   </div>
   <div id="filters">
     <div class="bar"><input id="q" type="search" placeholder="🔍 Search item, brand, size..."></div>
@@ -127,6 +163,7 @@ h1{font-size:20px;margin:0}
 </div>
 <div id="printArea"></div>
 <div id="ov"><div class="mdl" id="mdl"></div></div>
+<div id="pv"><div id="pvbar"><b>Print preview</b><span id="pvinfo" style="font-size:13px;opacity:.8"></span><span style="display:flex;gap:8px"><button id="pvBack">← Settings</button><button class="pri" id="pvPrint">🖨 Print</button></span></div><div id="pvscroll"><div id="pvwrap"><div id="pvpaper"></div></div></div></div>
 <div id="toast"></div>
 
 <script>
@@ -195,8 +232,8 @@ const nid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 let S, ui={view:'stock',filter:'all',cat:'all',q:''}, draft={}, order={};
 
-function seed(){return{cats:CATS.map(([id,name])=>({id,name})),items:SEED.map((r,i)=>({id:'s'+i,cat:r[0],name:r[1],ar:r[2],size:r[3],unit:r[4],brand:r[5],qty:r[6],min:r[7],img:r[8]>=0?IMGS[r[8]]:'',note:'',counted:'2026-09-25'})),lastCount:'2026-09-25',log:[]}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&Array.isArray(o.items)&&Array.isArray(o.cats)){S=o;if(!S.log)S.log=[];return}}}catch(e){}S=seed()}
+function seed(){return{cats:CATS.map(([id,name])=>({id,name})),items:SEED.map((r,i)=>({id:'s'+i,cat:r[0],name:r[1],ar:r[2],size:r[3],unit:r[4],brand:r[5],qty:r[6],min:r[7],img:r[8]>=0?IMGS[r[8]]:'',note:'',counted:'2026-09-25'})),hist:[],lastCount:'2026-09-25',log:[]}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&Array.isArray(o.items)&&Array.isArray(o.cats)){S=o;if(!S.log)S.log=[];if(!S.hist)S.hist=[];return}}}catch(e){}S=seed()}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Could not save in this browser (images may be too large)')}}
 function save(){S.modified=new Date().toISOString();persist();renderSync()}
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2600)}
@@ -232,16 +269,22 @@ function fmtT(iso){if(!iso)return '—';const d=new Date(iso);return d.toLocaleD
 function renderSync(){const fs=localStorage.getItem('iat_stock_filesaved')||'';const el=$('#syncs');if(!el)return;
   const dirty=!fs||(S.modified&&S.modified>fs);
   const fn=localStorage.getItem('iat_stock_filename');el.innerHTML=fs?`${fn?'📄 '+esc(fn)+' · ':''}Saved: ${fmtT(fs)} ${dirty?'<b style="color:var(--low)">● changes not saved to file</b>':'<b style="color:var(--ok)">✔ up to date</b>'}`:'<b style="color:var(--low)">● never saved to a file yet</b>'}
-function renderTabs(){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ui.view));$('#filters').style.display=ui.view==='need'?'none':''}
+function renderTabs(){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===ui.view));$('#filters').style.display=ui.view==='need'?'none':'';$('#chips').style.display=ui.view==='hist'?'none':''}
 
 function stockHTML(){
   const g=groups(visible(false));
   if(!g.length)return '<div class="empty">No matching items</div>';
   return g.map(x=>`<div class="gh">${esc(x.c.name)} <small>(${x.items.length})</small></div><div class="grid">`+x.items.map(it=>{
     const st=status(it);
+    const u=todayUsed(it.id);
     return `<div class="card s-${st}" data-id="${it.id}"><div class="top" data-act="edit">${info(it)}</div>
-    <div class="bot"><div class="qc"><button data-act="minus">−</button><input class="qin" inputmode="decimal" value="${it.qty}"><button data-act="plus">+</button></div>
-    <div class="mn"><span class="badge b-${st}">${LBL[st]}</span><span class="minv">Min: ${+it.min>0?it.min:'—'}</span></div></div></div>`}).join('')+'</div>').join('');
+    <div class="cols"><div class="ctl">
+      <div class="row"><div class="qc"><button data-act="minus">−</button><input class="qin" inputmode="decimal" value="${it.qty}" style="width:56px"><button data-act="plus">+</button></div></div>
+      <div class="row"><span class="badge b-${st}">${LBL[st]}</span><span class="minv">Min: ${+it.min>0?it.min:'—'}</span></div>
+      <input class="uin" type="number" inputmode="decimal" min="0" placeholder="qty used / received">
+      <div class="row"><button class="ubtn u" data-act="used">− Used</button><button class="ubtn r" data-act="recv">+ In</button></div>
+      ${u?`<div class="tdy">used today: ${u}</div>`:''}
+    </div>${itemHist(it.id)}</div></div>`}).join('')+'</div>').join('');
 }
 
 function countHTML(){
@@ -270,7 +313,103 @@ function needHTML(){
   return h;
 }
 
-function render(){renderStats();renderChips();renderTabs();const v=$('#view');v.innerHTML=ui.view==='stock'?stockHTML():ui.view==='count'?countHTML():needHTML()}
+
+/* ---------- usage log ---------- */
+const nowT=()=>new Date().toISOString();
+const wd=d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'});
+function logMove(it,k,delta,merge){
+  if(!S.hist)S.hist=[];
+  const b=+it.qty||0,a=Math.max(0,b+delta),q=a-b;if(q===0&&k!=='set')return false;
+  const h=S.hist[0];
+  if(merge&&h&&h.id===it.id&&h.k===k&&(Date.now()-new Date(h.t))<60000&&h.d===today()){h.q+=q;h.a=a;h.t=nowT()}
+  else S.hist.unshift({t:nowT(),d:today(),id:it.id,n:it.name+(it.ar?' ('+it.ar+')':''),q,b,a,k});
+  S.hist=S.hist.slice(0,3000);it.qty=a;return true;
+}
+function itemHist(id){
+  const KL={use:'Used',in:'In',set:'Edit',count:'Count'};
+  const arr=(S.hist||[]).filter(h=>h.id===id).slice(0,60);
+  if(!arr.length)return '<div class="ilog empty0">No movements yet</div>';
+  return '<div class="ilog">'+arr.map(h=>{const d=new Date(h.t);const c=h.k==='set'||h.k==='count'?'s':h.q<0?'n':'p';
+    return `<div class="hl"><span class="dt">${wd(h.d)} ${h.d.slice(8)}/${h.d.slice(5,7)} ${d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span><span class="${c}">${KL[h.k]||h.k} ${h.q>0?'+':''}${h.q}</span><span class="rs">→${h.a}</span></div>`}).join('')+'</div>';
+}
+const todayUsed=id=>-(S.hist||[]).filter(h=>h.d===today()&&h.id===id&&h.k==='use').reduce((x,h)=>x+h.q,0);
+function useHTML(){
+  const g=groups(visible(true));
+  let h=`<div class="note">Type the quantity you used (or received) and tap the button. Used reduces the remaining total, In adds to it. Each item shows its recent movements below it (small text, by date and time). To correct the total directly, tap the item name or use the number in the Stock tab.</div>`;
+  if(!g.length)return h+'<div class="empty">No matching items</div>';
+  g.forEach(x=>{h+=`<div class="gh">${esc(x.c.name)}</div>`+x.items.map(it=>{
+    const st=status(it),u=todayUsed(it.id);
+    return `<div class="crow urow s-${st}" data-id="${it.id}" style="border-inline-start:6px solid var(${st==='out'?'--out':st==='low'?'--low':'--ok'})"><div class="top" data-act="edit">${info(it)}</div>
+    <div class="cnt" style="flex-wrap:wrap"><div style="text-align:center"><div class="sys">Remaining</div><b style="font-size:20px">${it.qty}</b>${u?`<div class="tdy">used today: ${u}</div>`:''}</div>
+    <input class="uin" type="number" inputmode="decimal" min="0" placeholder="qty"><button class="ubtn u" data-act="used">− Used</button><button class="ubtn r" data-act="recv">+ In</button></div>${itemHist(it.id)}</div>`}).join('')});
+  return h;
+}
+function histHTML(){
+  const q=ui.q.trim().toLowerCase();
+  const list=(S.hist||[]).filter(h=>!q||h.n.toLowerCase().includes(q));
+  if(!list.length)return '<div class="empty">No history yet. Log usage from the Usage tab.</div>';
+  const days={};list.forEach(h=>(days[h.d]=days[h.d]||[]).push(h));
+  const KL={use:'Used',in:'Received',set:'Total edited',count:'Count'};
+  return Object.keys(days).sort().reverse().slice(0,30).map(d=>{
+    const arr=days[d];const used=arr.filter(h=>h.k==='use').length;
+    return `<div class="hday"><span>${wd(d)} ${fmtD(d)} <small style="color:var(--muted);font-weight:400">(${arr.length} entries)</small></span><button data-act="sum" data-d="${d}">📋 Summary</button></div>`+
+    arr.map(h=>`<div class="hrow" data-id="${h.id}"><div style="min-width:0"><div style="font-weight:700;word-break:break-word">${esc(h.n)}</div><div class="tdy">${KL[h.k]||h.k} · ${new Date(h.t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · ${h.b} → ${h.a}</div></div>
+    <div style="display:flex;align-items:center;gap:6px"><span class="hq ${h.k==='set'||h.k==='count'?'s':h.q<0?'n':'p'}">${h.q>0?'+':''}${h.q}</span><button data-act="undo" data-t="${h.t}" data-h="${h.id}">Undo</button></div></div>`).join('')}).join('');
+}
+function daySummary(d){
+  const arr=(S.hist||[]).filter(h=>h.d===d);const m={};
+  arr.forEach(h=>{const o=m[h.id]=m[h.id]||{n:h.n,use:0,in:0,last:h.a};if(h.k==='use')o.use+=-h.q;else if(h.k==='in')o.in+=h.q;})
+  const lines=Object.values(m).filter(o=>o.use||o.in).map(o=>`• ${o.n}: ${o.use?'used '+o.use:''}${o.use&&o.in?', ':''}${o.in?'received '+o.in:''}`);
+  const rem=Object.keys(m).map(id=>{const it=S.items.find(i=>i.id===id);return it?`• ${it.name}: ${it.qty} left`:null}).filter(Boolean);
+  return `Stock usage – ${wd(d)} ${fmtD(d)}\n\n`+(lines.join('\n')||'No usage')+(rem.length?'\n\nRemaining now:\n'+rem.join('\n'):'');
+}
+
+/* ---------- averages ---------- */
+ui.avgP=30;ui.avgS='days';
+function avgData(){
+  const H=S.hist||[];const P=ui.avgP;
+  const first=H.length?H.reduce((m,h)=>h.d<m?h.d:m,H[0].d):today();
+  const dayDiff=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+  const sinceFirst=dayDiff(first,today())+1;
+  const span=P==='all'?sinceFirst:Math.min(P,sinceFirst);
+  const cut=P==='all'?'0000':new Date(Date.now()-(P-1)*864e5).toLocaleDateString('en-CA');
+  const rows=S.items.map(it=>{
+    const e=H.filter(h=>h.id===it.id&&h.d>=cut);
+    const used=-e.filter(h=>h.k==='use').reduce((x,h)=>x+h.q,0),recv=e.filter(h=>h.k==='in').reduce((x,h)=>x+h.q,0);
+    const perDay=used/span;const left=perDay>0?(+it.qty||0)/perDay:null;
+    return {it,used,recv,perDay,left,n:e.filter(h=>h.k==='use').length};
+  });
+  return {rows,span,first,sinceFirst};
+}
+const r1=x=>x>=100?Math.round(x):Math.round(x*10)/10;
+function avgHTML(){
+  const {rows,span,first,sinceFirst}=avgData();
+  const q=ui.q.trim().toLowerCase();
+  let list=rows.filter(r=>(!q||(r.it.name+' '+r.it.ar).toLowerCase().includes(q))&&(ui.cat==='all'||r.it.cat===ui.cat));
+  list.sort((a,b)=>ui.avgS==='days'?((a.left==null)-(b.left==null)||a.left-b.left):ui.avgS==='used'?b.used-a.used:a.it.name.localeCompare(b.it.name));
+  const pb=[[7,'7 days'],[30,'30 days'],[90,'90 days'],['all','All']].map(p=>`<button class="chip ${ui.avgP===p[0]?'on':''}" data-act="avgp" data-p="${p[0]}">${p[1]}</button>`).join('');
+  const sb=[['days','Runs out first'],['used','Most used'],['name','A–Z']].map(p=>`<button class="chip ${ui.avgS===p[0]?'on':''}" data-act="avgs" data-p="${p[0]}">${p[1]}</button>`).join('');
+  let h=`<div class="note">Average use per item, based on “− Used” entries only. Received stock and total edits are not counted as use. History starts ${fmtD(first)} (${sinceFirst} day${sinceFirst>1?'s':''}), so the average is over ${span} day${span>1?'s':''}. Longer history gives a more reliable number.</div>
+  <div class="chips">${pb}</div><div class="chips">${sb}</div>`;
+  if(!(S.hist||[]).length)return h+'<div class="empty">No usage logged yet. Use “− Used” on the Stock tab and averages will appear here.</div>';
+  h+=list.map(r=>{
+    const dl=r.left==null?'—':r.left>=365?'365+':Math.round(r.left);
+    const cls=r.left==null?'':r.left<7?'n':r.left<21?'w':'p';
+    return `<div class="avr" data-id="${r.it.id}"><div class="avt">${thumb(r.it,'th sm')}<div style="min-width:0"><div class="nm">${esc(r.it.name)}</div>${r.it.ar?`<div class="ar">${esc(r.it.ar)}</div>`:''}</div></div>
+    <div class="avg">
+      <div><span>Used</span><b>${r.used?r1(r.used):'—'}</b></div>
+      <div><span>Per day</span><b>${r.perDay?r1(r.perDay):'—'}</b></div>
+      <div><span>Per week</span><b>${r.perDay?r1(r.perDay*7):'—'}</b></div>
+      <div><span>Per month</span><b>${r.perDay?r1(r.perDay*30):'—'}</b></div>
+      <div><span>In stock</span><b>${r.it.qty}</b></div>
+      <div><span>Days left</span><b class="${cls}">${dl}</b></div>
+    </div>${r.recv?`<div class="tdy">received in period: ${r1(r.recv)}</div>`:''}</div>`}).join('');
+  return h;
+}
+
+function viewHTML(){return ui.view==='stock'?stockHTML():ui.view==='count'?countHTML():ui.view==='use'?useHTML():ui.view==='hist'?histHTML():ui.view==='avg'?avgHTML():needHTML()}
+
+function render(){renderStats();renderChips();renderTabs();const v=$('#view');v.innerHTML=viewHTML()}
 
 /* ---------- modal helpers ---------- */
 function openM(html){$('#mdl').innerHTML=html;$('#ov').classList.add('on')}
@@ -456,26 +595,92 @@ function openBackup(){
 }
 
 /* ---------- print ---------- */
-function printSheet(){
-  const g=groups(S.items);let n=0;
-  let h=`<h2>Stock Count Sheet – IAT Trading</h2><div class="pm">Printed: ${fmtD(today())} &nbsp;|&nbsp; Last count: ${fmtD(S.lastCount)} &nbsp;|&nbsp; Counted by: ____________________</div>`;
-  g.forEach(x=>{
-    h+=`<h4>${esc(x.c.name)}</h4><table><tr><th style="width:24px">#</th><th style="width:34px">Photo</th><th>Item</th><th>Common name</th><th>Size</th><th>Unit</th><th>Brand</th><th style="width:52px">System</th><th style="width:44px">Min</th><th style="width:70px">Actual count</th><th style="width:110px">Notes</th></tr>`;
-    x.items.forEach(it=>{n++;h+=`<tr><td>${n}</td><td>${it.img?`<img src="${it.img}">`:''}</td><td class="l">${esc(it.name)}</td><td class="l">${esc(it.ar)}</td><td>${esc(it.size)}</td><td>${esc(it.unit)}</td><td>${esc(it.brand)}</td><td><b>${it.qty}</b></td><td>${+it.min>0?it.min:''}</td><td></td><td></td></tr>`});
-    for(let i=0;i<2;i++)h+=`<tr class="blank">${'<td></td>'.repeat(11)}</tr>`;
-    h+='</table>';
-  });
-  $('#printArea').innerHTML=h;
-  try{window.print()}catch(e){toast('Print failed, try the browser menu')}
+const PKEY='iat_stock_print';
+const PDEF={paper:'A4',orient:'landscape',boxes:10,rowH:8,font:1,photo:true,imgS:11,infoW:62,margin:8,blank:1,scope:'all',ar:true,now:true,remain:true,cats:null};
+const PAPER={A4:[297,210],A3:[420,297],Letter:[279.4,215.9]};
+function pcfg(){try{return Object.assign({},PDEF,JSON.parse(localStorage.getItem(PKEY)||'{}'))}catch(e){return Object.assign({},PDEF)}}
+function pcfgSave(c){try{localStorage.setItem(PKEY,JSON.stringify(c))}catch(e){}}
+function pageDims(c){const d=PAPER[c.paper]||PAPER.A4;return c.orient==='portrait'?[d[1],d[0]]:[d[0],d[1]]}
+function applyPage(c){let st=document.getElementById('pgStyle');if(!st){st=document.createElement('style');st.id='pgStyle';document.head.appendChild(st)}
+  st.textContent=`@page{size:${c.paper==='Letter'?'letter':c.paper} ${c.orient};margin:${c.margin}mm}`}
+function buildSheet(c){
+  const num=(v,d,lo,hi)=>{v=parseFloat(v);return isNaN(v)?d:Math.min(hi,Math.max(lo,v))};
+  const NB=Math.round(num(c.boxes,10,2,24)),infoW=num(c.infoW,62,30,130),imgS=num(c.imgS,11,5,30),bh=num(c.rowH,8,5,25);
+  let items=S.items.filter(i=>c.scope!=='short'||['low','out'].includes(status(i)));
+  const g=groups(items).filter(x=>!c.cats||c.cats.includes(x.c.id));
+  const photoW=imgS+2,remW=24,lblW=11;
+  const cols=(c.photo?1:0)+2+NB+(c.remain?1:0);
+  const head=`<thead><tr>${c.photo?`<th style="width:${photoW}mm">Photo</th>`:''}<th style="width:${infoW}mm">Item</th><th style="width:${lblW}mm"></th><th colspan="${NB}">Quantity entries (write each movement in its own box)</th>${c.remain?`<th style="width:${remW}mm">Remaining<br>(final total)</th>`:''}</tr></thead>`;
+  const boxes='<td></td>'.repeat(NB);
+  const item=(it,blank)=>{
+    const info=blank?'':`<b>${esc(it.name)}</b>${c.ar&&it.ar?`<span class="a">${esc(it.ar)}</span>`:''}<span class="m">${[it.size,it.unit].filter(Boolean).map(esc).join(' · ')}</span>${c.now?`<div class="s">Now: ${it.qty}${+it.min>0?' &nbsp;·&nbsp; Min: '+it.min:''}</div>`:''}`;
+    return `<tbody><tr>${c.photo?`<td class="pi" rowspan="2">${!blank&&it.img?`<img src="${it.img}">`:''}</td>`:''}<td class="pn" rowspan="2">${info}</td><td class="pl">+ IN</td>${boxes}${c.remain?'<td class="pt2" rowspan="2"></td>':''}</tr><tr><td class="pl">− OUT</td>${boxes}</tr></tbody>`;
+  };
+  let h=`<div class="sheet" style="--bh:${bh}mm;--fs:${num(c.font,1,.6,2)};--img:${imgS}mm"><h2>Stock Count Sheet – IAT Trading</h2><div class="pm">Printed: ${wd(today())} ${fmtD(today())} &nbsp;|&nbsp; Last count: ${fmtD(S.lastCount)} &nbsp;|&nbsp; Date / shift: ____________ &nbsp;|&nbsp; Counted by: ____________________</div>
+  <div class="lg"><b>+ IN</b> = quantity received / added &nbsp;&nbsp; <b>− OUT</b> = quantity taken / used &nbsp;&nbsp; ${c.remain?'<b>Remaining</b> = total left after the count. ':''}${c.now?'“Now” = quantity in the app when printed.':''}</div>`;
+  if(!g.length)h+='<div style="padding:10mm">No items match the selected options.</div>';
+  g.forEach(x=>{h+=`<h4>${esc(x.c.name)}</h4><table class="pt">${head}`;x.items.forEach(it=>{h+=item(it,false)});for(let i=0;i<Math.round(num(c.blank,1,0,6));i++)h+=item(null,true);h+='</table>'});
+  return h+'</div>';
 }
+function printNow(c){applyPage(c);$('#printArea').innerHTML=buildSheet(c);try{window.print()}catch(e){toast('Print failed, try the browser menu')}}
+function readPrintForm(){
+  const v=id=>$('#'+id).value,ck=id=>$('#'+id).checked;
+  const cats=[...document.querySelectorAll('.pcat')].filter(x=>x.checked).map(x=>x.value);
+  return {paper:v('p_paper'),orient:v('p_orient'),boxes:v('p_boxes'),rowH:v('p_rowh'),font:v('p_font'),photo:ck('p_photo'),imgS:v('p_imgs'),infoW:v('p_infow'),margin:parseFloat(v('p_margin'))||8,blank:v('p_blank'),scope:v('p_scope'),ar:ck('p_ar'),now:ck('p_now'),remain:ck('p_rem'),cats:cats.length===S.cats.length?null:cats};
+}
+function openPreview(c){
+  applyPage(c);
+  const [W,H]=pageDims(c);const pv=$('#pv');
+  $('#pvpaper').innerHTML=buildSheet(c);
+  pv.classList.add('on');
+  const paper=$('#pvpaper');paper.style.width=(W-2*c.margin)+'mm';paper.style.padding='0';
+  const fit=()=>{const avail=$('#pvscroll').clientWidth-20;const pxW=(W)*3.7795;const k=Math.min(1,avail/pxW);
+    paper.style.width=W+'mm';paper.style.padding=c.margin+'mm';paper.style.boxSizing='border-box';paper.style.transform=`scale(${k})`;
+    const wrap=$('#pvwrap');wrap.style.width=(W*3.7795*k)+'px';wrap.style.height=(paper.offsetHeight*k)+'px';
+    const usable=(H-2*c.margin)*3.7795,pages=Math.max(1,Math.ceil((paper.offsetHeight-2*c.margin*3.7795)/usable));$('#pvinfo').textContent=`${c.paper} ${c.orient} · about ${pages} page${pages>1?'s':''}`};
+  fit();setTimeout(fit,60);
+}
+function openPrint(){
+  const c=pcfg();
+  const sel=(id,opts,val)=>`<select id="${id}">${opts.map(o=>`<option value="${o[0]}" ${String(o[0])===String(val)?'selected':''}>${o[1]}</option>`).join('')}</select>`;
+  const numI=(id,val,lo,hi,st)=>`<input id="${id}" type="number" inputmode="decimal" min="${lo}" max="${hi}" step="${st||1}" value="${val}">`;
+  openM(`<div class="pset"><h3>🖨 Print settings</h3>
+  <div class="grid2">
+   <div class="fld"><label>Paper size</label>${sel('p_paper',[['A4','A4'],['A3','A3'],['Letter','Letter']],c.paper)}</div>
+   <div class="fld"><label>Orientation</label>${sel('p_orient',[['landscape','Landscape (wide)'],['portrait','Portrait (tall)']],c.orient)}</div>
+   <div class="fld"><label>Boxes per row (IN / OUT)</label>${numI('p_boxes',c.boxes,2,24)}</div>
+   <div class="fld"><label>Row height (mm, each of IN / OUT)</label>${numI('p_rowh',c.rowH,5,25,.5)}</div>
+   <div class="fld"><label>Info column width (mm)</label>${numI('p_infow',c.infoW,30,130)}</div>
+   <div class="fld"><label>Text size</label>${sel('p_font',[[0.8,'Small'],[1,'Normal'],[1.2,'Large'],[1.4,'Extra large']],c.font)}</div>
+   <div class="fld"><label>Photo size (mm)</label>${numI('p_imgs',c.imgS,5,30)}</div>
+   <div class="fld"><label>Page margin (mm)</label>${numI('p_margin',c.margin,3,25)}</div>
+   <div class="fld"><label>Blank rows per category</label>${numI('p_blank',c.blank,0,6)}</div>
+   <div class="fld"><label>Print which items</label>${sel('p_scope',[['all','All items'],['short','Only low / out of stock']],c.scope)}</div>
+  </div>
+  <div class="cks">
+   <label><input type="checkbox" id="p_photo" ${c.photo?'checked':''}>Photo</label>
+   <label><input type="checkbox" id="p_ar" ${c.ar?'checked':''}>Arabic name</label>
+   <label><input type="checkbox" id="p_now" ${c.now?'checked':''}>“Now / Min” line</label>
+   <label><input type="checkbox" id="p_rem" ${c.remain?'checked':''}>Remaining box</label>
+  </div>
+  <div class="fld"><label>Categories to print</label><div class="cks">${S.cats.map(x=>`<label><input type="checkbox" class="pcat" value="${x.id}" ${(!c.cats||c.cats.includes(x.id))?'checked':''}>${esc(x.name)}</label>`).join('')}</div></div>
+  <div class="mbtns"><button id="p_reset">Reset</button><span style="display:flex;gap:8px;flex-wrap:wrap"><button id="p_close">Close</button><button id="p_prev">👁 Preview</button><button class="pri" id="p_go">🖨 Print</button></span></div></div>`);
+  $('#p_close').onclick=()=>{pcfgSave(readPrintForm());closeM()};
+  $('#p_reset').onclick=()=>{pcfgSave(Object.assign({},PDEF));closeM();openPrint()};
+  $('#p_prev').onclick=()=>{const k=readPrintForm();pcfgSave(k);closeM();openPreview(k)};
+  $('#p_go').onclick=()=>{const k=readPrintForm();pcfgSave(k);closeM();printNow(k)};
+}
+function closePreview(){$('#pv').classList.remove('on');openPrint()}
 
 /* ---------- events ---------- */
 $('#stats').addEventListener('click',e=>{const s=e.target.closest('.stat');if(!s)return;const f=s.dataset.f;ui.filter=(ui.filter===f&&f!=='all')?'all':f;if(ui.view!=='stock')ui.view='stock';render()});
 $('#chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;ui.cat=c.dataset.c;render()});
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;ui.view=b.dataset.v;render()});
-$('#q').addEventListener('input',e=>{ui.q=e.target.value;if(ui.view!=='need')$('#view').innerHTML=ui.view==='stock'?stockHTML():countHTML()});
+$('#q').addEventListener('input',e=>{ui.q=e.target.value;if(ui.view!=='need')$('#view').innerHTML=viewHTML()});
 $('#bAdd').onclick=()=>openEdit(null);
-$('#bPrint').onclick=printSheet;
+$('#bPrint').onclick=openPrint;
+$('#pvBack').onclick=closePreview;
+$('#pvPrint').onclick=()=>{$('#pv').classList.remove('on');printNow(pcfg())};
 $('#bBackup').onclick=openBackup;
 $('#bSave').onclick=()=>cloudSave();
 $('#bLoad').onclick=()=>cloudLoad();
@@ -483,9 +688,18 @@ $('#bLoad').onclick=()=>cloudLoad();
 const view=$('#view');
 view.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');
-  if(t){const card=t.closest('[data-id]');if(!card)return;const it=S.items.find(i=>i.id===card.dataset.id);if(!it)return;
-    if(t.dataset.act==='edit')openEdit(it.id);
-    else{it.qty=Math.max(0,(+it.qty||0)+(t.dataset.act==='plus'?1:-1));save();render()}
+  if(t){const a=t.dataset.act;
+    if(a==='avgp'){ui.avgP=t.dataset.p==='all'?'all':+t.dataset.p;render();return}
+    if(a==='avgs'){ui.avgS=t.dataset.p;render();return}
+    if(a==='sum'){textM('Daily summary',daySummary(t.dataset.d));return}
+    if(a==='undo'){const i=S.hist.findIndex(h=>h.t===t.dataset.t&&h.id===t.dataset.h);if(i<0)return;const h=S.hist[i];const it=S.items.find(x=>x.id===h.id);
+      confirmM(`Undo this entry (${h.q>0?'+':''}${h.q}) for <b>${esc(h.n)}</b>?${it?'':'<br>The item no longer exists, only the entry will be removed.'}`,()=>{if(it){it.qty=Math.max(0,(+it.qty||0)-h.q)}S.hist.splice(i,1);save();render();toast('Undone')},'Undo');return}
+    const card=t.closest('[data-id]');if(!card)return;const it=S.items.find(i=>i.id===card.dataset.id);if(!it)return;
+    if(a==='edit')openEdit(it.id);
+    else if(a==='used'||a==='recv'){const inp=card.querySelector('.uin');const n=parseFloat(inp&&inp.value);if(isNaN(n)||n<=0){toast('Enter a quantity first');return}
+      const before=+it.qty||0;if(a==='used'&&n>before)toast('Used more than in stock – remaining set to 0');
+      logMove(it,a==='used'?'use':'in',a==='used'?-n:n,false);save();render();toast((a==='used'?'Used ':'Received ')+n+' → '+it.qty+' left')}
+    else if(a==='plus'||a==='minus'){logMove(it,a==='plus'?'in':'use',a==='plus'?1:-1,true);save();render()}
     return}
   if(e.target.id==='bApply')applyCount();
   if(e.target.id==='bClr'){draft={};render()}
@@ -495,7 +709,7 @@ view.addEventListener('click',e=>{
     textM('Order list',`Packaging materials order – ${fmtD(today())}\n\n`+l.map(i=>`• ${i.name}${i.ar?' ('+i.ar+')':''}${i.size?' – '+i.size:''}: ${order[i.id]}`).join('\n'))}
 });
 view.addEventListener('change',e=>{
-  if(e.target.classList.contains('qin')){const it=S.items.find(i=>i.id===e.target.closest('[data-id]').dataset.id);const n=parseFloat(e.target.value);if(!isNaN(n)&&n>=0){it.qty=n;save()}render()}
+  if(e.target.classList.contains('qin')){const it=S.items.find(i=>i.id===e.target.closest('[data-id]').dataset.id);const n=parseFloat(e.target.value);if(!isNaN(n)&&n>=0){logMove(it,'set',n-(+it.qty||0),false);it.qty=n;save()}render()}
 });
 view.addEventListener('input',e=>{
   const row=e.target.closest('[data-id]');if(!row)return;const id=row.dataset.id;
@@ -512,7 +726,7 @@ function applyCount(){
   const ids=Object.keys(draft).filter(k=>draft[k]!==''&&!isNaN(parseFloat(draft[k])));
   if(!ids.length){toast('No quantities entered');return}
   confirmM(`${ids.length} items will be updated with the quantities you entered. Continue?`,()=>{
-    const ch=[];ids.forEach(id=>{const it=S.items.find(i=>i.id===id);if(!it)return;const n=parseFloat(draft[id]);if(n!==it.qty)ch.push({n:it.name+(it.ar?' ('+it.ar+')':''),o:it.qty,w:n});it.qty=n;it.counted=today()});
+    const ch=[];ids.forEach(id=>{const it=S.items.find(i=>i.id===id);if(!it)return;const n=parseFloat(draft[id]);if(n!==it.qty)logMove(it,'count',n-it.qty,false);if(n!==it.qty)ch.push({n:it.name+(it.ar?' ('+it.ar+')':''),o:it.qty,w:n});it.qty=n;it.counted=today()});
     S.lastCount=today();S.log.unshift({d:today(),cnt:ids.length,ch});S.log=S.log.slice(0,30);draft={};order={};save();render();toast('Count applied')},'Apply');
 }
 
