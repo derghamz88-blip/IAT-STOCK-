@@ -101,6 +101,32 @@ h1{font-size:20px;margin:0}
 .avg span{display:block;font-size:11px;color:var(--muted)}.avg b{font-size:16px}
 .avg b.n{color:var(--out)}.avg b.w{color:var(--low)}.avg b.p{color:var(--ok)}
 #printArea{display:none}
+.ohead{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}
+.olbl{display:flex;align-items:center;gap:6px;font-size:14px}.olbl select{width:auto}
+.orow{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.orow.off{opacity:.55}
+.orow input[type=checkbox]{width:24px;height:24px;flex:none;accent-color:var(--accent)}
+.orow .oinfo{flex:1;min-width:0}
+.orow .l2{flex-basis:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ostep{display:flex;align-items:center;gap:4px}
+.ostep button{width:38px;height:38px;padding:0;font-size:20px;font-weight:700}
+.ostep .oq{width:74px;text-align:center;font-weight:700;font-size:18px;padding:6px}
+.otag{font-size:11px;border-radius:8px;padding:1px 7px;background:var(--nombg);color:var(--nom)}
+.otag.rec{background:var(--lowbg);color:var(--low)}
+.orow .rm{padding:4px 8px;font-size:13px}
+.omsg textarea{width:100%;min-height:170px;font-size:14px;line-height:1.5;resize:vertical}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0;font-size:12px;color:var(--muted)}
+.obar{position:sticky;bottom:0;z-index:6;background:var(--bg);padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.obar button{flex:1;padding:12px 8px;font-size:15px;font-weight:700}
+.obar .wa{flex:2}
+button.wa{background:#1a9e4f;color:#fff;border-color:#1a9e4f}
+button.wa:disabled,.obar button:disabled{opacity:.45}
+.oadd-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--border)}
+.oadd-row .nm{font-size:14px}
+.pord{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+.pord pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;margin:6px 0;font-size:13px;direction:auto}
+.mopts label.chk{display:flex;align-items:center;gap:6px;font-size:14px;margin:4px 0;color:var(--text)}
+.mopts label.chk input{width:auto}
 .sheet{color:#000;font-family:Arial,Helvetica,sans-serif;font-size:calc(10px*var(--fs,1));background:#fff;text-align:left}
 .sheet h2{margin:0 0 1mm;font-size:calc(15px*var(--fs,1))}
 .sheet .pm{margin-bottom:2mm}
@@ -151,7 +177,7 @@ h1{font-size:20px;margin:0}
   <div class="tabs" id="tabs">
     <button data-v="stock">Stock</button>
     <button data-v="count">Count</button>
-    <button data-v="need">Shortages <span class="cnt" id="needCnt">0</span></button>
+    <button data-v="need">Order <span class="cnt" id="needCnt">0</span></button>
     <button data-v="hist">History</button>
     <button data-v="avg">Averages</button>
   </div>
@@ -233,7 +259,7 @@ const nid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 let S, ui={view:'stock',filter:'all',cat:'all',q:''}, draft={}, order={};
 
 function seed(){return{cats:CATS.map(([id,name])=>({id,name})),items:SEED.map((r,i)=>({id:'s'+i,cat:r[0],name:r[1],ar:r[2],size:r[3],unit:r[4],brand:r[5],qty:r[6],min:r[7],img:r[8]>=0?IMGS[r[8]]:'',note:'',counted:'2026-09-25'})),hist:[],lastCount:'2026-09-25',log:[]}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&Array.isArray(o.items)&&Array.isArray(o.cats)){S=o;if(!S.log)S.log=[];if(!S.hist)S.hist=[];return}}}catch(e){}S=seed()}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&Array.isArray(o.items)&&Array.isArray(o.cats)){S=o;if(!S.log)S.log=[];if(!S.hist)S.hist=[];if(!S.orders)S.orders=[];return}}}catch(e){}S=seed()}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Could not save in this browser (images may be too large)')}}
 function save(){S.modified=new Date().toISOString();persist();renderSync()}
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2600)}
@@ -302,15 +328,96 @@ function countHTML(){
   return h;
 }
 
+/* ---------- order builder (WhatsApp) ---------- */
+const OKEY='iat_stock_ord';
+const ODEF={mult:1,sel:{},qty:{},extra:[],custom:[],ar:true,size:true,brand:false,head:'Order request',foot:'Thank you',num:'',text:null};
+let ord=(()=>{try{return Object.assign({},ODEF,JSON.parse(localStorage.getItem(OKEY)||'{}'))}catch(e){return Object.assign({},ODEF)}})();
+function ordSave(){try{localStorage.setItem(OKEY,JSON.stringify(ord))}catch(e){}}
+const isShort=it=>{const st=status(it);return st==='low'||st==='out'};
+const autoNeed=it=>{const m=+it.min||0,q=+it.qty||0;return m>0?Math.max(0,Math.ceil(m*ord.mult-q)):0};
+function lastOrdered(id,days){const lim=Date.now()-(days||5)*864e5;const o=(S.orders||[]).find(o=>new Date(o.t).getTime()>=lim&&o.lines.some(l=>l.id===id));
+  if(!o)return null;const l=o.lines.find(l=>l.id===id);return {d:o.d,q:l.q}}
+function ordRows(){
+  const rows=[],seen=new Set();
+  S.items.filter(isShort).forEach(it=>{seen.add(it.id);rows.push({kind:'auto',id:it.id,it})});
+  (ord.extra||[]).forEach(id=>{if(seen.has(id))return;const it=S.items.find(i=>i.id===id);if(it){seen.add(id);rows.push({kind:'extra',id,it})}});
+  (ord.custom||[]).forEach(c=>rows.push({kind:'custom',id:c.id,c}));
+  return rows;
+}
+const rowQty=r=>ord.qty[r.id]!==undefined?(+ord.qty[r.id]||0):(r.it?autoNeed(r.it):0);
+const rowSel=r=>ord.sel[r.id]!==undefined?!!ord.sel[r.id]:(r.kind==='auto'?(autoNeed(r.it)>0&&!lastOrdered(r.id)):true);
+const ordLines=()=>ordRows().filter(r=>rowSel(r)&&rowQty(r)>0);
+const rowName=r=>r.it?r.it.name:r.c.name;
+function ordText(){
+  const L=ordLines();if(!L.length)return '';
+  const lines=L.map((r,i)=>{const it=r.it;let d=[];
+    if(it){if(ord.ar&&it.ar)d.push(it.ar);if(ord.size&&it.size)d.push(it.size);if(ord.brand&&it.brand)d.push(it.brand)}
+    return `${i+1}. ${rowName(r)}${d.length?' – '+d.join(' · '):''}: *${rowQty(r)}*`});
+  return `${(ord.head||'').trim()||'Order request'} – ${wd(today())} ${fmtD(today())}\n\n${lines.join('\n')}${(ord.foot||'').trim()?'\n\n'+ord.foot.trim():''}`;
+}
+function waNum(v){let d=String(v||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);else if(d.startsWith('0'))d='971'+d.slice(1);return d}
+function ordRowHTML(r){
+  const it=r.it,st=it?status(it):'',q=rowQty(r),sel=rowSel(r),rec=it&&lastOrdered(r.id);
+  const img=it?thumb(it,'th sm'):'<div class="th sm ph">✎</div>';
+  const sub=it?`${it.ar?`<div class="ar">${esc(it.ar)}</div>`:''}<div class="meta">${[it.size,it.unit].filter(Boolean).map(esc).join(' · ')}</div>`:'<div class="meta">Custom item</div>';
+  const need=it?autoNeed(it):0;
+  const tags=it?`<span class="badge b-${st}">${LBL[st]}</span> <span class="minv">Stock ${it.qty} · Min ${+it.min>0?it.min:'—'}</span>${r.kind==='auto'&&!(+it.min>0)?' <span class="otag">no minimum set – enter qty</span>':''}${r.kind==='auto'&&+it.min>0&&need===0?' <span class="otag">at minimum</span>':''}${rec?` <span class="otag rec">ordered ${fmtD(rec.d).slice(0,5)} · ${rec.q}</span>`:''}`:'<span class="otag">added by you</span>';
+  return `<div class="orow ${sel?'':'off'}" data-oid="${r.id}"><input type="checkbox" data-oa="chk" ${sel?'checked':''}>${img}<div class="oinfo"><div class="nm">${esc(rowName(r))}</div>${sub}</div>
+  <div class="l2"><div>${tags}</div><div style="display:flex;align-items:center;gap:6px"><div class="ostep"><button data-oa="dec">−</button><input class="oq" type="number" inputmode="decimal" min="0" value="${q>0?q:''}" placeholder="0"><button data-oa="inc">+</button></div>${r.kind!=='auto'?'<button class="rm dan" data-oa="rm">✕</button>':''}</div></div></div>`;
+}
 function needHTML(){
-  const l=S.items.filter(i=>['low','out'].includes(status(i)));
-  if(!l.length)return '<div class="empty">No shortages right now 👌</div>';
-  l.forEach(i=>{if(order[i.id]===undefined)order[i.id]=sug(i)||''});
-  let h=`<div class="note">Suggested = quantity needed to reach double the minimum. Edit the numbers as needed before copying the list.</div>
-  <div class="sticky"><span>${l.length} items short</span><button class="pri" id="bCopyNeed">📋 Copy order list</button></div>`;
-  h+=l.map(it=>{const st=status(it);return `<div class="crow" data-id="${it.id}" style="border-inline-start:6px solid var(${st==='out'?'--out':'--low'})"><div class="top" style="cursor:default">${info(it)}</div>
-  <div class="cnt"><div style="text-align:center"><div class="sys">In stock ${it.qty} / min ${+it.min>0?it.min:'—'}</div><span class="badge b-${st}">${LBL[st]}</span></div><div><div class="sys">Order</div><input class="oin" type="number" inputmode="decimal" value="${order[it.id]}"></div></div></div>`}).join('');
+  const rows=ordRows(),auto=rows.filter(r=>r.kind==='auto'),other=rows.filter(r=>r.kind!=='auto');
+  const n=ordLines().length,txt=ord.text!==null?ord.text:ordText();
+  let h=`<div class="note">Items at or below their minimum are listed automatically. The quantity is what you need to bring each item up to its minimum. Tick the items, adjust the numbers, add anything else, then send.</div>
+  <div class="ohead"><label class="olbl">Order up to <select id="o_mult"><option value="1" ${ord.mult==1?'selected':''}>the minimum</option><option value="1.5" ${ord.mult==1.5?'selected':''}>1.5 × minimum</option><option value="2" ${ord.mult==2?'selected':''}>2 × minimum</option></select></label><span style="display:flex;gap:6px"><button data-oa="all">All</button><button data-oa="none">None</button><button class="pri" data-oa="add">＋ Add item</button></span></div>`;
+  h+=`<div class="gh">Low / out of stock <small>(${auto.length})</small></div>`;
+  h+=auto.length?auto.map(ordRowHTML).join(''):'<div class="empty">Nothing is at its minimum right now 👌<br>You can still add items below.</div>';
+  if(other.length)h+=`<div class="gh">Added by you <small>(${other.length})</small></div>`+other.map(ordRowHTML).join('');
+  h+=`<div class="gh">Message <small id="ocount">(${n} item${n===1?'':'s'})</small></div><div class="omsg">
+   <textarea id="otext" dir="auto" placeholder="Select items to build the message...">${esc(txt)}</textarea>
+   <div class="mrow"><span id="oman">${ord.text!==null?'✎ edited by hand – the list no longer updates it':'You can edit the text before sending'}</span><button data-oa="rtext" id="orst" style="${ord.text!==null?'':'display:none'}">↺ Rebuild from list</button></div>
+   <details class="mopts"><summary>Message options</summary>
+    <label class="chk"><input type="checkbox" id="o_ar" ${ord.ar?'checked':''}>Include common name (Arabic)</label>
+    <label class="chk"><input type="checkbox" id="o_size" ${ord.size?'checked':''}>Include size / spec</label>
+    <label class="chk"><input type="checkbox" id="o_brand" ${ord.brand?'checked':''}>Include brand</label>
+    <div class="two"><div class="fld"><label>Title line</label><input id="o_head" value="${esc(ord.head)}"></div><div class="fld"><label>Closing line</label><input id="o_foot" value="${esc(ord.foot)}"></div></div></details>
+   <div class="fld" style="margin-top:8px"><label>Send to WhatsApp number (optional – leave empty to choose a contact)</label><input id="o_num" inputmode="tel" placeholder="e.g. 0501234567 or 971501234567" value="${esc(ord.num)}"></div></div>
+   <div class="obar"><button data-oa="copy" id="ocopy" ${n?'':'disabled'}>📋 Copy</button><button class="wa" data-oa="wa" id="owa" ${n?'':'disabled'}>📲 Send on WhatsApp</button></div>`;
+  const po=(S.orders||[]).slice(0,10);
+  if(po.length)h+=`<details style="margin-top:8px"><summary>Previous orders (${po.length})</summary>`+po.map((o,i)=>`<div class="pord" data-pi="${i}"><b>${wd(o.d)} ${fmtD(o.d)} ${new Date(o.t).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</b> · ${o.lines.length} item${o.lines.length===1?'':'s'}<pre>${esc(o.text)}</pre><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="wa" data-oa="pwa">📲 Resend</button><button data-oa="pcopy">📋 Copy</button><button class="dan" data-oa="pdel">Delete</button></div></div>`).join('')+'</details>';
   return h;
+}
+function updOrder(){
+  const ta=$('#otext');if(ta&&ord.text===null)ta.value=ordText();
+  const n=ordLines().length;const c=$('#ocount');if(c)c.textContent=`(${n} item${n===1?'':'s'})`;
+  ['ocopy','owa'].forEach(id=>{const b=$('#'+id);if(b)b.disabled=!(ta&&ta.value.trim())});
+  ordSave();
+}
+function openWA(text,num){const d=waNum(num);const url='https://wa.me/'+(d||'')+'?text='+encodeURIComponent(text);const w=window.open(url,'_blank');if(!w)location.href=url}
+async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}x.remove();return ok}}
+function ordSend(kind){
+  const ta=$('#otext');const text=ta?ta.value.trim():'';if(!text){toast('Select items and quantities first');return}
+  const L=ordLines();
+  if(!S.orders)S.orders=[];
+  S.orders.unshift({t:nowT(),d:today(),lines:L.map(r=>({id:r.it?r.it.id:null,n:rowName(r),q:rowQty(r)})),text,k:kind});S.orders=S.orders.slice(0,50);
+  const num=ord.num;
+  ord.qty={};ord.sel={};ord.extra=[];ord.custom=[];ord.text=null;ordSave();save();
+  if(kind==='wa')openWA(text,num);else copyText(text).then(ok=>toast(ok?'Copied – order saved in history':'Select the text and copy manually'));
+  render();
+}
+function openOrdAdd(){
+  openM(`<h3>Add item to the order</h3><input id="oa_q" type="search" placeholder="🔍 Search your items..."><div id="oa_list" style="max-height:44vh;overflow:auto;margin-top:6px"></div>
+  <div class="gh" style="margin-top:12px">Item that is not in your list</div><div class="two"><input id="oc_name" placeholder="Item name"><input id="oc_qty" type="number" inputmode="decimal" placeholder="Qty"></div>
+  <button class="pri" id="oc_add" style="margin-top:8px;width:100%">＋ Add custom item</button><div class="mbtns"><span></span><button id="oa_done">Done</button></div>`);
+  const draw=()=>{const q=$('#oa_q').value.trim().toLowerCase();const inL=new Set(ordRows().map(r=>r.id));
+    const list=S.items.filter(i=>!inL.has(i.id)&&(!q||(i.name+' '+i.ar+' '+i.brand+' '+i.size).toLowerCase().includes(q)));
+    $('#oa_list').innerHTML=list.length?list.map(i=>`<div class="oadd-row"><div style="min-width:0"><div class="nm">${esc(i.name)}</div><div class="meta">${[i.ar,i.size].filter(Boolean).map(esc).join(' · ')} · stock ${i.qty}</div></div><button class="pri" data-add="${i.id}">＋ Add</button></div>`).join(''):'<div class="empty">No more items to add</div>'};
+  draw();$('#oa_q').oninput=draw;
+  $('#oa_list').onclick=e=>{const b=e.target.closest('[data-add]');if(!b)return;const it=S.items.find(i=>i.id===b.dataset.add);if(!it)return;
+    ord.extra.push(it.id);ord.qty[it.id]=Math.max(autoNeed(it),1);ord.sel[it.id]=true;ordSave();toast('Added '+it.name);draw()};
+  $('#oc_add').onclick=()=>{const nm=$('#oc_name').value.trim(),q=parseFloat($('#oc_qty').value);if(!nm){toast('Enter the item name');return}if(isNaN(q)||q<=0){toast('Enter a quantity');return}
+    const id='c'+nid();ord.custom.push({id,name:nm});ord.qty[id]=q;ord.sel[id]=true;ordSave();$('#oc_name').value='';$('#oc_qty').value='';toast('Added '+nm)};
+  $('#oa_done').onclick=()=>{closeM();render()};
 }
 
 
@@ -703,10 +810,6 @@ view.addEventListener('click',e=>{
     return}
   if(e.target.id==='bApply')applyCount();
   if(e.target.id==='bClr'){draft={};render()}
-  if(e.target.id==='bCopyNeed'){
-    const l=S.items.filter(i=>['low','out'].includes(status(i))&&(parseFloat(order[i.id])>0));
-    if(!l.length){toast('No order quantities');return}
-    textM('Order list',`Packaging materials order – ${fmtD(today())}\n\n`+l.map(i=>`• ${i.name}${i.ar?' ('+i.ar+')':''}${i.size?' – '+i.size:''}: ${order[i.id]}`).join('\n'))}
 });
 view.addEventListener('change',e=>{
   if(e.target.classList.contains('qin')){const it=S.items.find(i=>i.id===e.target.closest('[data-id]').dataset.id);const n=parseFloat(e.target.value);if(!isNaN(n)&&n>=0){logMove(it,'set',n-(+it.qty||0),false);it.qty=n;save()}render()}
@@ -719,7 +822,6 @@ view.addEventListener('input',e=>{
     else{const x=v-it.qty;d.textContent=x>0?'+'+x:(x<0?String(x):'=');d.className='diff '+(x>0?'p':x<0?'n':'');row.classList.add('done')}
     const f=Object.keys(draft).filter(k=>draft[k]!==''&&!isNaN(parseFloat(draft[k]))).length;const p=$('#prog');if(p)p.textContent=`Counted ${f} of ${S.items.length}`;
   }
-  if(e.target.classList.contains('oin'))order[id]=e.target.value;
 });
 
 function applyCount(){
@@ -729,6 +831,39 @@ function applyCount(){
     const ch=[];ids.forEach(id=>{const it=S.items.find(i=>i.id===id);if(!it)return;const n=parseFloat(draft[id]);if(n!==it.qty)logMove(it,'count',n-it.qty,false);if(n!==it.qty)ch.push({n:it.name+(it.ar?' ('+it.ar+')':''),o:it.qty,w:n});it.qty=n;it.counted=today()});
     S.lastCount=today();S.log.unshift({d:today(),cnt:ids.length,ch});S.log=S.log.slice(0,30);draft={};order={};save();render();toast('Count applied')},'Apply');
 }
+
+/* ---------- order page events ---------- */
+view.addEventListener('click',e=>{
+  if(ui.view!=='need')return;const t=e.target.closest('[data-oa]');if(!t)return;const a=t.dataset.oa;
+  const row=t.closest('[data-oid]');const id=row&&row.dataset.oid;const r=id&&ordRows().find(x=>x.id===id);
+  if(a==='add'){openOrdAdd();return}
+  if(a==='all'||a==='none'){ordRows().forEach(x=>{ord.sel[x.id]=a==='all'});ordSave();render();return}
+  if(a==='rtext'){ord.text=null;ordSave();render();return}
+  if(a==='wa'||a==='copy'){ordSend(a);return}
+  if(a==='pwa'||a==='pcopy'||a==='pdel'){const o=S.orders[+t.closest('[data-pi]').dataset.pi];if(!o)return;
+    if(a==='pwa')openWA(o.text,ord.num);else if(a==='pcopy')copyText(o.text).then(ok=>toast(ok?'Copied':'Select the text and copy manually'));
+    else confirmM('Delete this order from the history?',()=>{S.orders.splice(+t.closest('[data-pi]').dataset.pi,1);save();render()},'Delete');return}
+  if(!r)return;
+  if(a==='rm'){if(r.kind==='extra')ord.extra=ord.extra.filter(x=>x!==id);else ord.custom=ord.custom.filter(c=>c.id!==id);delete ord.qty[id];delete ord.sel[id];ordSave();render();return}
+  if(a==='inc'||a==='dec'){const q=Math.max(0,rowQty(r)+(a==='inc'?1:-1));ord.qty[id]=q;if(q>0&&!rowSel(r))ord.sel[id]=true;
+    row.querySelector('.oq').value=q>0?q:'';row.querySelector('[data-oa=chk]').checked=rowSel(r);row.classList.toggle('off',!rowSel(r));updOrder()}
+});
+view.addEventListener('input',e=>{
+  if(ui.view!=='need')return;const el=e.target;
+  if(el.classList.contains('oq')){const row=el.closest('[data-oid]'),id=row.dataset.oid,r=ordRows().find(x=>x.id===id);if(!r)return;
+    const v=parseFloat(el.value);ord.qty[id]=isNaN(v)||v<0?0:v;if(ord.qty[id]>0&&!rowSel(r))ord.sel[id]=true;
+    row.querySelector('[data-oa=chk]').checked=rowSel(r);row.classList.toggle('off',!rowSel(r));updOrder();return}
+  if(el.id==='otext'){ord.text=el.value;ordSave();const m=$('#oman');if(m)m.textContent='✎ edited by hand – the list no longer updates it';const b=$('#orst');if(b)b.style.display='';
+    ['ocopy','owa'].forEach(id=>{const x=$('#'+id);if(x)x.disabled=!el.value.trim()});return}
+  if(el.id==='o_num'){ord.num=el.value;ordSave();return}
+  if(el.id==='o_head'||el.id==='o_foot'){ord[el.id==='o_head'?'head':'foot']=el.value;updOrder()}
+});
+view.addEventListener('change',e=>{
+  if(ui.view!=='need')return;const el=e.target;
+  if(el.dataset.oa==='chk'){const row=el.closest('[data-oid]');ord.sel[row.dataset.oid]=el.checked;row.classList.toggle('off',!el.checked);updOrder();return}
+  if(el.id==='o_mult'){ord.mult=parseFloat(el.value)||1;ordSave();render();return}
+  if(el.id==='o_ar'||el.id==='o_size'||el.id==='o_brand'){ord[el.id.slice(2)]=el.checked;updOrder()}
+});
 
 load();render();handleRedirect();
 </script>
